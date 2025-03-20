@@ -19,15 +19,15 @@ local botsSteamIDs = {}
 local getAvatarsHTML = setmetatable({}, {__mode = "v"})
 local avatars = {}
 function steam_avatar_clear_cache()
-    local files = file.Find("steam_avatars_cache/*", "DATA")
+	local files = file.Find("steam_avatars_cache/*", "DATA")
 
-    if files then
-        for key, value in pairs(files) do
-            file.Delete("steam_avatars_cache/" .. value)
-        end
-    end
+	if files then
+		for key, value in pairs(files) do
+			file.Delete("steam_avatars_cache/" .. value)
+		end
+	end
 
-    return true
+	return true
 end
 
 hook.Add("ShutDown", "steam_avatars_cache_clear", steam_avatar_clear_cache)
@@ -55,15 +55,15 @@ end
 
 local color_white_2 = Color(220, 220, 220)
 function vgui.Create(str, parent, ...)
-    if str == "AvatarImage" then
-        local returned_panel = vgui_Create("DPanel", parent)
-        returned_panel.AlphaMult = 0
+	if str == "AvatarImage" then
+		local returned_panel = vgui_Create("DPanel", parent)
+		returned_panel.AlphaMult = 0
 		local color_gray = Color(80, 80, 80)
 
 		i = i + 1
 
 		returned_panel.NextUpdate = SysTime() + 3
-        returned_panel.Paint = function(self, w, h)
+		returned_panel.Paint = function(self, w, h)
 			if self.CurrentSteamID
 				and botsSteamIDs[self.CurrentSteamID] then
 
@@ -74,21 +74,21 @@ function vgui.Create(str, parent, ...)
 			end
 
 			local sysTime = SysTime()
-            if self.Mat then
-                local url = self.URL
-                if url then
-                    qc[url] = SysTime() + 1
+			if self.Mat then
+				local url = self.URL
+				if url then
+					qc[url] = SysTime() + 1
 
-                    local html = getAvatarsHTML[url]
-                    if IsValid(html) then
-                        html:SetVisible(true)
-                    end
-                end
+					local html = getAvatarsHTML[url]
+					if IsValid(html) then
+						html:SetVisible(true)
+					end
+				end
 
-                surface.SetMaterial(self.Mat)
-                surface.SetDrawColor(255, 255, 255)
-                surface.DrawTexturedRect(0, 0, w * 2 + 1, h * 2 + 1)
-            else
+				surface.SetMaterial(self.Mat)
+				surface.SetDrawColor(255, 255, 255)
+				surface.DrawTexturedRect(0, 0, w * 2 + 1, h * 2 + 1)
+			else
 				if self.CurrentSteamID
 					and (self.NextUpdate or 0) < sysTime then
 					self.NextUpdate = sysTime + 3
@@ -103,12 +103,12 @@ function vgui.Create(str, parent, ...)
 				draw.RoundedBox(0, 0, 0, w, h, color_black)
 				draw.RoundedBox(0, 2, 2, w - 4, h - 4, color_gray)
 			end
-        end
+		end
 
-        return returned_panel
-    end
+		return returned_panel
+	end
 
-    return vgui_Create(str, parent, ...)
+	return vgui_Create(str, parent, ...)
 end
 
 local GetAvatar
@@ -124,9 +124,9 @@ GetAvatar = function(val, handleURL, handleError)
 	local steamID = isentity(val) and val:SteamID64() or val
 	local fileName = string.format("steam_avatars_cache/%s.dat", steamID)
 	local assetPath = string.format("asset://garrysmod/data/steam_avatars_cache/%s.dat", steamID)
-    if file.Exists(fileName, "DATA") then
-        return handleURL and handleURL(assetPath)
-    end
+	if file.Exists(fileName, "DATA") then
+		return handleURL and handleURL(assetPath)
+	end
 
 	local ply = isentity(val) and val or player.GetBySteamID64(steamID)
 	if ply then
@@ -144,80 +144,80 @@ GetAvatar = function(val, handleURL, handleError)
 		local customAvatar = ply:GetNetData("cl_animated_avatars_url")
 		if customAvatar ~= nil
 			and string.Trim(customAvatar) ~= "" then
-            http.Fetch(customAvatar, function(body, _, _, code)
-                if code ~= 200 then
-                    if handleError then
-                        handleError("on avatar fetching: " .. code, body)
-                    end
+			http.Fetch(customAvatar, function(body, _, _, code)
+				if code ~= 200 then
+					if handleError then
+						handleError("on avatar fetching: " .. code, body)
+					end
 
-                    return
-                end
+					return
+				end
 
-                file.Write(fileName, body)
+				file.Write(fileName, body)
 				
 				if handleURL then
 					handleURL(assetPath)
 				end
-            end, function()
-                if handleError then
-                    handleError("invalid url: " .. customAvatar)
-                end
+			end, function()
+				if handleError then
+					handleError("invalid url: " .. customAvatar)
+				end
 			end)
 
 			return
 		end
 	end
 
-    http.Fetch(string.format("https://steamcommunity.com/profiles/%s", steamID), function(body, _, _, code)
-        if code ~= 200 then
-            if handleError then
-                handleError(code, body)
-            end
+	http.Fetch(string.format("https://steamcommunity.com/profiles/%s", steamID), function(body, _, _, code)
+		if code ~= 200 then
+			if handleError then
+				handleError(code, body)
+			end
 
-            return
-        end
+			return
+		end
 
-        local url = ""
+		local url = ""
 
-        for _, pattern in ipairs({
-            '<div class="playerAvatarAutoSizeInner".-</div></div>',
-            '<div class="playerAvatarAutoSizeInner".-</div>'
-        }) do
-            local div = string.match(body, pattern)
-            if div then
-                for img in string.gmatch(div, '<img src="(.-)"') do
-                    url = img
-                end
+		for _, pattern in ipairs({
+			'<div class="playerAvatarAutoSizeInner".-</div></div>',
+			'<div class="playerAvatarAutoSizeInner".-</div>'
+		}) do
+			local div = string.match(body, pattern)
+			if div then
+				for img in string.gmatch(div, '<img src="(.-)"') do
+					url = img
+				end
 
-                if url ~= "" then
-                    http.Fetch(url, function(body, _, _, code)
-                        if code ~= 200 then
-                            if handleError then
-                                handleError("on avatar fetching: " .. code, body)
-                            end
+				if url ~= "" then
+					http.Fetch(url, function(body, _, _, code)
+						if code ~= 200 then
+							if handleError then
+								handleError("on avatar fetching: " .. code, body)
+							end
 
-                            return
-                        end
+							return
+						end
 
-                        file.Write(fileName, body)
+						file.Write(fileName, body)
 
 						if handleURL then
 							handleURL(assetPath)
 						end
-                    end)
+					end)
 
-                    break
-                end
-            end
-        end
+					break
+				end
+			end
+		end
 
-        if url == ""
-            and handleError then
+		if url == ""
+			and handleError then
 			timer.Create("avatars.Retrying: " .. steamID, 1, 1, function()
 				GetAvatar(steamID, handleURL, handleError)
 			end)
-        end
-    end)
+		end
+	end)
 end
 
 local changeAvatars = setmetatable({}, {__mode = "k"})
@@ -227,35 +227,35 @@ local UpdateHTMLTexture, GetHTMLMaterial = PANEL.UpdateHTMLTexture, PANEL.GetHTM
 
 local SetURL
 SetURL = function(self, url, ply, w, h)
-    local html = getAvatarsHTML[url]
+	local html = getAvatarsHTML[url]
 	local name = string.format("%s%s%s-anti-reload30", url, tostring(w), tostring(h))
-    if IsValid(html) then
-        avatars[name] = CreateMaterial(name, "UnlitGeneric", {
-            ["$vertexcolor"] = "1",
-            ["$vertexalpha"] = "1",
-            ["$nolod"] = "1",
-            ["$basetexturetransform"] = "center 0 0 scale ".. scale_x .." ".. scale_y .." rotate 0 translate 0 0",
-            ["$basetexture"] = html:GetHTMLMaterial():GetName(),
-        })
+	if IsValid(html) then
+		avatars[name] = CreateMaterial(name, "UnlitGeneric", {
+			["$vertexcolor"] = "1",
+			["$vertexalpha"] = "1",
+			["$nolod"] = "1",
+			["$basetexturetransform"] = "center 0 0 scale ".. scale_x .." ".. scale_y .." rotate 0 translate 0 0",
+			["$basetexture"] = html:GetHTMLMaterial():GetName(),
+		})
 
 		if IsValid(self) then
 			self.Mat = avatars[name]
 			self.URL = url
 		end
 
-        return
-    end
+		return
+	end
 
-    if precached[url] then
-        return
-    end
+	if precached[url] then
+		return
+	end
 
-    precached[url], qc[url] = true, SysTime() + 1
+	precached[url], qc[url] = true, SysTime() + 1
 
-    local HTML = vgui.Create("DHTML")
-    HTML:SetSize(184, 184)
-    HTML:SetHTML(HTML_GIF:Replace("{URL}", url))
-    HTML:SetPos(ScrW() - 1, ScrH() - 1)
+	local HTML = vgui.Create("DHTML")
+	HTML:SetSize(184, 184)
+	HTML:SetHTML(HTML_GIF:Replace("{URL}", url))
+	HTML:SetPos(ScrW() - 1, ScrH() - 1)
 
 	local nextThink = -1
 	local getPlayer = isentity(ply) and ply or player.GetBySteamID64(ply)
@@ -297,40 +297,40 @@ SetURL = function(self, url, ply, w, h)
 		end
 	end
 
-    HTML.ConsoleMessage = function(_, msg)
-        if msg ~= "1" then
+	HTML.ConsoleMessage = function(_, msg)
+		if msg ~= "1" then
 			return
 		end
 
-        local timer_name = "avatar.Fetch: " .. url
-        timer.Create(timer_name, 0, 0, function()
-            if not HTML:IsValid() then
-                return timer.Remove(timer_name)
-            end
+		local timer_name = "avatar.Fetch: " .. url
+		timer.Create(timer_name, 0, 0, function()
+			if not HTML:IsValid() then
+				return timer.Remove(timer_name)
+			end
 
 			local html_mat = HTML:GetHTMLMaterial()
-            if not html_mat then
+			if not html_mat then
 				return
 			end
 
-            timer.Remove(timer_name)
+			timer.Remove(timer_name)
 
-            avatars[name] = CreateMaterial(name, "UnlitGeneric", {
-                ["$vertexcolor"] = "1",
-                ["$vertexalpha"] = "1",
-                ["$nolod"] = "1",
-                ["$basetexturetransform"] = "center 0 0 scale ".. scale_x .." ".. scale_y .." rotate 0 translate 0 0",
-                ["$basetexture"] = html_mat:GetName(),
-            })
+			avatars[name] = CreateMaterial(name, "UnlitGeneric", {
+				["$vertexcolor"] = "1",
+				["$vertexalpha"] = "1",
+				["$nolod"] = "1",
+				["$basetexturetransform"] = "center 0 0 scale ".. scale_x .." ".. scale_y .." rotate 0 translate 0 0",
+				["$basetexture"] = html_mat:GetName(),
+			})
 
-            getAvatarsHTML[url] = HTML
+			getAvatarsHTML[url] = HTML
 
 			if IsValid(self) then
 				self.Mat = avatars[name]
 				self.URL = url
 			end
-        end)
-    end
+		end)
+	end
 end
 
 local PANEL = FindMetaTable("Panel")
@@ -343,7 +343,7 @@ function PANEL:SetPlayer(ply, ...)
 	self.CurrentSteamID = ply:SteamID64()
 
 	local w, h = self:GetSize()
-    GetAvatar(self.CurrentSteamID, function(url)
+	GetAvatar(self.CurrentSteamID, function(url)
 		table.insert(queue, {
 			["self"] = self,
 			["url"] = url,
@@ -351,14 +351,14 @@ function PANEL:SetPlayer(ply, ...)
 			["w"] = w,
 			["h"] = h
 		})
-    end, print)
+	end, print)
 end
 
 function PANEL:SetSteamID(steamID64, ...)
 	self.CurrentSteamID = steamID64
 
 	local w, h = self:GetSize()
-    GetAvatar(self.CurrentSteamID, function(url)
+	GetAvatar(self.CurrentSteamID, function(url)
 		table.insert(queue, {
 			["self"] = self,
 			["url"] = url,
@@ -366,7 +366,7 @@ function PANEL:SetSteamID(steamID64, ...)
 			["w"] = w,
 			["h"] = h
 		})
-    end, print)
+	end, print)
 end
 
 hook.Add("StartCommand", "avatars.Start", function(ply, cmd)
@@ -393,23 +393,23 @@ hook.Add("StartCommand", "avatars.Start", function(ply, cmd)
 		table.remove(queue, 1)
 	end)
 
-    hook.Add("PostRender", "avatars.Render", function()
-        local sysTime = SysTime()
+	hook.Add("PostRender", "avatars.Render", function()
+		local sysTime = SysTime()
 
-        for url, time in pairs(qc) do
-            local html = getAvatarsHTML[url]
+		for url, time in pairs(qc) do
+			local html = getAvatarsHTML[url]
 
-            if IsValid(html) then
-                if time > sysTime then
-                    UpdateHTMLTexture(html)
-                    html.CurrentFrameMaterial = GetHTMLMaterial(html)
-                else
-                    html:SetVisible(false)
-                    qc[url] = nil
-                end
+			if IsValid(html) then
+				if time > sysTime then
+					UpdateHTMLTexture(html)
+					html.CurrentFrameMaterial = GetHTMLMaterial(html)
+				else
+					html:SetVisible(false)
+					qc[url] = nil
+				end
 			end
-        end
-    end)
+		end
+	end)
 	
 	hook.Run("animated_avatars.Started")
 end)
